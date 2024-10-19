@@ -1,0 +1,29 @@
+name: "Updating metadata files"
+description: "Update metadata files using inputs, this action will retrieve the file update it and push it to target org"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "search metadata files"
+      shell: bash
+      run: |
+        files=$(find changed-sources -type f -name "${{ inputs.path }}" )
+        echo $files
+        for file in $files; do
+          # Replace the original value with the updated value in the file
+          sed -i "s,${{inputs.original-value}},${{inputs.updated-value}},g" "$file"
+
+          # Output the updated file path
+          echo "Updated file: $file"
+        done
+
+inputs:
+  path:
+    description: "file path / pattern"
+    required: true
+  original-value:
+    description: "Original value to replace"
+    required: true
+  updated-value:
+    description: "Updated value to replace the original value with"
+    required: true

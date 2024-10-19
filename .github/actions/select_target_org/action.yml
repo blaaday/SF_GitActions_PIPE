@@ -1,0 +1,40 @@
+name: "Selecting Target Org"
+description: "Select Target Org using target branch"
+inputs:
+  SF_QA_URL:
+    description: "QA authentication secret file"
+    required: true
+
+outputs:
+  org-alias:
+    description: "org alias"
+    value: ${{ steps.org-selection.outputs.org-alias }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Select target org"
+      shell: bash
+      env:
+        SF_QA_URL: ${{ inputs.SF_QA_URL }}
+      id: org-selection
+      run: |
+        # Check if it's a pull request event
+        if [ ${{ github.event_name }} == "pull_request" ]; then
+          target_branch=${{github.event.pull_request.base.ref}}
+          echo ${target_branch}
+        # Check if it's a push event
+        elif [ ${{ github.event_name }} == "push" ]; then
+          target_branch=${GITHUB_REF##*/}
+          echo ${target_branch}
+        else
+          echo "Unsupported branch"
+        fi
+
+        # Extract Org
+        case $target_branch in
+          d2c_release_2_*)
+            echo "org-alias=GM_QA" >> $GITHUB_OUTPUT
+            echo $SF_QA_URL >> ./auth_file.json
+            ;;
+        esac

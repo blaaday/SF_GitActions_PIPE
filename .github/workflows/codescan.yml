@@ -1,0 +1,26 @@
+name: Code Scan on Pull Requests
+
+on:
+  pull_request:
+    branches:
+      - devopsOnlyFail
+    paths:
+      - 'force-app/**'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    environment: Training
+    steps:      
+      - name: List Vars
+        run: |
+          echo "${{ vars.ENVIRONMENT_NAME}}"
+      - name: List Env Vars
+        run: env
+      - uses: actions/checkout@v3
+      - name: Code Scan for ${{ vars.ENVIRONMENT_NAME }}
+        uses: ./.github/actions/sf-scanner
+        with:
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+          DRY_RUN: true

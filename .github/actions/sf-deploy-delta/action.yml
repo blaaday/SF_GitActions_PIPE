@@ -1,0 +1,13 @@
+name: "Deploy delta components"
+description: "deploy delta changes"
+inputs:
+  ORG_ALIAS:
+    description: "Alias for the Salesforce org"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: "Deploy delta"
+      shell: bash
+      run: |
+        sf project deploy start --source-dir "changed-sources/force-app" --target-org ${{ inputs.ORG_ALIAS }} --ignore-conflicts

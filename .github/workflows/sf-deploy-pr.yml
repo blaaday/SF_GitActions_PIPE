@@ -1,0 +1,64 @@
+name: Deploy release branch to QA
+
+on:
+  push:
+    paths:
+      - "force-app/**"
+
+jobs:
+  deployment-on-qa-org:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: "Checkout source code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Cache Salesforce CLI and Node modules
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            ~/.local/share/sfdx
+            /usr/lib/jvm
+          key: ${{ runner.os }}-sfdx-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Selecting Target Org
+        id: org-selection
+        uses: ./.github/actions/select_target_org
+        with:
+          SF_QA_URL: ${{ secrets.SF_QA_URL }}
+
+      - name: Authenticate to SF Org
+        if: ${{ steps.org-selection.outputs.org-alias != '' }}
+        uses: ./.github/actions/authenticate-to-org
+        with:
+          ORG_ALIAS: ${{ steps.org-selection.outputs.org-alias }}
+
+      - name: Create delta packages for new, modified or deleted metadata
+        uses: ./.github/actions/sf-generate-delta
+        with:
+          to: "HEAD"
+          from: "HEAD~1"
+
+      - name: update metadata files
+        uses: ./.github/actions/update-metadata
+        with:
+          path: "*.email"
+          original-value: "https://www.cadillaceurope.com/"
+          updated-value: "https://www-cadillaceurope-com.prd2.wpx.gm.com/"
+
+      - name: Deployment
+        if: ${{ steps.org-selection.outputs.org-alias != '' }}
+        uses: ./.github/actions/sf-deploy-delta
+        with:
+          ORG_ALIAS: ${{ steps.org-selection.outputs.org-alias }}

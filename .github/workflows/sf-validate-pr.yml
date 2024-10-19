@@ -1,0 +1,91 @@
+name: Validate PR on d2c_release_* branch
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - "d2c_release_2_*"
+      - "deployment/crm2_uat"
+      - "main"
+    paths:
+      - "force-app/**"
+
+jobs:
+  validate-deployment-on-qa-org:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Checkout source code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Cache Salesforce CLI and Node modules
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            ~/.local/share/sfdx
+            /usr/lib/jvm
+          key: ${{ runner.os }}-sfdx-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Selecting Target Org
+        id: org-selection
+        uses: ./.github/actions/select_target_org
+        with:
+          SF_QA_URL: ${{ secrets.SF_QA_URL }}
+
+      - name: Authenticate to SF Org
+        if: ${{ steps.org-selection.outputs.org-alias != '' }}
+        uses: ./.github/actions/authenticate-to-org
+        with:
+          ORG_ALIAS: ${{ steps.org-selection.outputs.org-alias }}
+
+      - name: Create delta packages for new, modified or deleted metadata
+        uses: ./.github/actions/sf-generate-delta
+        with:
+          to: "origin/${{github.event.pull_request.head.ref}}"
+          from: ${{ github.event.pull_request.base.sha }}
+
+      - name: update metadata files
+        uses: ./.github/actions/update-metadata
+        with:
+          path: "*.email"
+          original-value: "https://www.cadillaceurope.com/"
+          updated-value: "https://www-cadillaceurope-com.prd2.wpx.gm.com/"
+
+      - name: Scan code with PMD
+        id: pmd-scan
+        uses: ./.github/actions/sf-code-scanner
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: "changed-sources/apexScanResults.sarif"
+
+      - name: Check PMD Results
+        shell: bash
+        run: |
+          if [ $SCAN_EXIT_CODE -ne 0 ]; then
+            echo "PMD Scan failed with exit code $SCAN_EXIT_CODE"
+            exit 1
+          else
+            echo "Scan completed successfully"
+          fi
+        env:
+          SCAN_EXIT_CODE: ${{ steps.pmd-scan.outputs.scan-exit-code }}
+
+      - name: Check Only Deployment
+        uses: ./.github/actions/sf-validate-delta
+        if: ${{ steps.org-selection.outputs.org-alias != '' }}
+        with:
+          APEX_TESTS: ${{ secrets.B2D_D2C_TESTS }}
+          TEST_LEVEL: "RunSpecifiedTests"
+          ORG_ALIAS: ${{ steps.org-selection.outputs.org-alias }}

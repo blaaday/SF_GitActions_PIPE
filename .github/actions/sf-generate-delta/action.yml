@@ -1,0 +1,56 @@
+name: "Create Delta Packages"
+description: "Create delta packages for new, modified, or deleted metadata"
+runs:
+  using: "composite"
+  steps:
+    - name: "Create Delta Packages"
+      shell: bash
+      run: |
+        mkdir changed-sources
+        sf sgd:source:delta --to "${{ inputs.to }}" --from "${{ inputs.from }}" --output changed-sources/ --generate-delta --source force-app/
+
+    - name: "Delete existing bot comments"
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          const botComments = comments.data.filter(comment => comment.user.type === 'Bot');
+          for (const comment of botComments) {
+            await github.rest.issues.deleteComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: comment.id,
+            });
+          }
+
+    - name: "Writing package.xml file to PR body"
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const packageXmlContent = fs.readFileSync('changed-sources/package/package.xml', 'utf8');
+          const body = `
+            **Package file :**
+            \`\`\`xml
+            ${packageXmlContent}
+            \`\`\`
+          `;
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: body
+          })
+inputs:
+  to:
+    description: "Source Branch"
+    required: true
+  from:
+    description: "Target Branch"
+    required: true
