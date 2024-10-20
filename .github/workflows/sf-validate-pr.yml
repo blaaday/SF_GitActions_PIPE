@@ -15,8 +15,8 @@ jobs:
   validate-deployment:
     runs-on: ubuntu-latest
 
-    container:
-      image: salesforce/cli:latest-slim
+    # container:
+    #   image: salesforce/cli:latest-slim
 
     if: ${{ github.actor != 'dependabot[bot]' }}
     steps:

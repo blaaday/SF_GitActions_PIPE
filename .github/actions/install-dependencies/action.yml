@@ -3,9 +3,9 @@ description: "Install Salesforce CLI, Java, and other necessary dependencies"
 runs:
   using: "composite"
   steps:
-    # - name: "Install Salesforce CLI"
-    #   shell: bash
-    #   run: npm install @salesforce/cli --global
+    - name: "Install Salesforce CLI"
+      shell: bash
+      run: npm install @salesforce/cli --global
 
     - name: "Installing SF git delta"
       shell: bash
@@ -13,12 +13,12 @@ runs:
         echo y | sf plugins install sfdx-git-delta
         sf plugins
 
-    # - name: "Installing java"
-    #   shell: bash
-    #   run: |
-    #     sudo rm /etc/apt/sources.list.d/microsoft-prod.list
-    #     sudo apt-get update
-    #     sudo apt install default-jdk
+    - name: "Installing java"
+      shell: bash
+      run: |
+        sudo rm /etc/apt/sources.list.d/microsoft-prod.list
+        sudo apt-get update
+        sudo apt install default-jdk
 
     - name: "Installing SFDX scanner"
       shell: bash
