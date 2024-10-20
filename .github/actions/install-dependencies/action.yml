@@ -3,9 +3,9 @@ description: "Install Salesforce CLI, Java, and other necessary dependencies"
 runs:
   using: "composite"
   steps:
-    - name: "Install Salesforce CLI"
-      shell: bash
-      run: npm install @salesforce/cli --global
+    # - name: "Install Salesforce CLI"
+    #   shell: bash
+    #   run: npm install @salesforce/cli --global
 
     - name: "Installing SF git delta"
       shell: bash

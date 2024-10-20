@@ -2,6 +2,11 @@ name: Deploy release branch to QA
 
 on:
   push:
+    branches:
+      - dev
+      - qa
+      - uat
+      - main
     paths:
       - "force-app/**"
 

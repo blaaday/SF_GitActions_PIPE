@@ -4,15 +4,20 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches:
-      - "d2c_release_2_*"
-      - "deployment/crm2_uat"
-      - "main"
+      - dev
+      - qa
+      - uat
+      - main
     paths:
       - "force-app/**"
 
 jobs:
   validate-deployment-on-qa-org:
     runs-on: ubuntu-latest
+
+    container:
+      image: salesforce/cli:latest-slim
+
     if: ${{ github.actor != 'dependabot[bot]' }}
     steps:
       - uses: actions/setup-node@v3
@@ -24,14 +29,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Cache Salesforce CLI and Node modules
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.npm
-            ~/.local/share/sfdx
-            /usr/lib/jvm
-          key: ${{ runner.os }}-sfdx-${{ hashFiles('**/package-lock.json') }}
+      # - name: Cache Salesforce CLI and Node modules
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: |
+      #       ~/.npm
+      #       ~/.local/share/sfdx
+      #       /usr/lib/jvm
+      #     key: ${{ runner.os }}-sfdx-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Dependencies
         uses: ./.github/actions/install-dependencies
@@ -40,7 +45,10 @@ jobs:
         id: org-selection
         uses: ./.github/actions/select_target_org
         with:
-          SF_QA_URL: ${{ secrets.SF_QA_URL }}
+          SF_DEV_URL: ${{ secrets.DEV_CRED }}
+          SF_QA_URL: ${{ secrets.QA_CRED }}
+          SF_UAT_URL: ${{ secrets.UAT_CRED }}
+          SF_PROD_URL: ${{ secrets.PROD_CRED }}
 
       - name: Authenticate to SF Org
         if: ${{ steps.org-selection.outputs.org-alias != '' }}
@@ -54,12 +62,12 @@ jobs:
           to: "origin/${{github.event.pull_request.head.ref}}"
           from: ${{ github.event.pull_request.base.sha }}
 
-      - name: update metadata files
-        uses: ./.github/actions/update-metadata
-        with:
-          path: "*.email"
-          original-value: "https://www.cadillaceurope.com/"
-          updated-value: "https://www-cadillaceurope-com.prd2.wpx.gm.com/"
+      # - name: update metadata files
+      #   uses: ./.github/actions/update-metadata
+      #   with:
+      #     path: "*.email"
+      #     original-value: "https://www.cadillaceurope.com/"
+      #     updated-value: "https://www-cadillaceurope-com.prd2.wpx.gm.com/"
 
       - name: Scan code with PMD
         id: pmd-scan
