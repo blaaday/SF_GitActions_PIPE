@@ -1,4 +1,4 @@
-name: Validate PR on d2c_release_* branch
+name: Validate PR
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ on:
       - "force-app/**"
 
 jobs:
-  validate-deployment-on-qa-org:
+  validate-deployment:
     runs-on: ubuntu-latest
 
     container:

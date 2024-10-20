@@ -7,7 +7,7 @@ runs:
       shell: bash
       run: |
         mkdir changed-sources
-        sf sgd:source:delta --to "${{ inputs.to }}" --from "${{ inputs.from }}" --output changed-sources/ --generate-delta --source force-app/
+        sf sgd:source:delta --from "${{ inputs.from }}" --to "${{ inputs.to }}" --output changed-sources/ --generate-delta --source force-app/
 
     - name: "Delete existing bot comments"
       if: ${{ github.event_name == 'pull_request' }}
