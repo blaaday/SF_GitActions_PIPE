@@ -42,8 +42,9 @@ runs:
         # Read the changed class names from the file ( changed_classes.txt )
         while IFS= read -r class; do
           if [ -n "$class" ]; then
-            tests=$(grep -rl "@isTest" force-app/main/default/classes 2>/dev/null | xargs -r grep -l "$class" 2>/dev/null | grep ".cls" | xargs -r -n 1 basename 2>/dev/null | sed 's/.cls$//')
+            tests=$(grep -rl "@isTest" force-app/main/default/classes 2>/dev/null | xargs -r grep -l "$class" 2>/dev/null )
             if [ -n "$tests" ]; then
+              tests=$(echo "$tests" | grep ".cls" | xargs -r -n 1 basename 2>/dev/null | sed 's/.cls$//')
               test_classes="$test_classes $tests"
             fi
           fi
