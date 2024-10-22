@@ -40,7 +40,7 @@ runs:
         while IFS= read -r class; do
           if [ -n "$class" ]; then
             echo "$class 1"
-            match=$(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" )
+            match=$(grep -rl "@isTest" force-app/main/default/classes | (xargs grep -l "ploof" || true ) )
             echo "$class 2"
             if [ -n "$match" ]; then
               echo "$class 3"
