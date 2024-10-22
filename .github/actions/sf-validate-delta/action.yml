@@ -18,13 +18,49 @@ inputs:
 runs:
   using: "composite"
   steps:
+
+    - name: "Identifying Changed Apex Classes"
+      shell: bash
+      id: detect-classes
+      run: |
+        # List all changed Apex classes in the "changed-sources/force-app/classes" folder
+        changed_classes=$(find changed-sources/force-app/classes/ -name "*.cls" -exec basename {} .cls \;)
+        
+        echo "Changed Apex classes:"
+        echo "$changed_classes"
+
+        # Save the changed class names to a file for later use
+        echo "$changed_classes" > changed_classes.txt
+
+    - name: "Detect Relevant Apex Test Classes"
+      shell: bash
+      id: detect-tests
+      run: |
+        # Initialize an empty list of test classes
+        test_classes=""
+        
+        # Read the changed class names from the file ( changed_classes.txt )
+        while IFS= read -r class; do
+          # Search for test classes that reference the changed class
+          tests=$(grep -rl "@isTest" force-app | xargs grep -l "$class" | grep ".cls" | xargs -n 1 basename | sed 's/.cls$//')
+          
+          # Append the found test classes to the test_classes variable
+          test_classes="$test_classes $tests"
+        done < changed_classes.txt
+        
+        # Remove duplicate test class names and trim whitespace
+        test_classes=$(echo "$test_classes" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+        
+        echo "Detected Test Classes:"
+        echo "$test_classes"
+        
+        # Set test classes as output to be used in the next step
+        echo "APEX_TESTS=$test_classes" >> $GITHUB_ENV
+
     - name: "Check and Deploy"
       shell: bash
       run: |
-        sf project deploy start --source-dir "changed-sources/force-app" --dry-run --target-org ${{ inputs.ORG_ALIAS }} --ignore-conflicts
-      # run: |
-      #   tests=""
-      #   for class in ${{ inputs.APEX_TESTS }}; do
-      #     tests+=" --tests $class"
-      #   done
-      #   sf project deploy validate --source-dir "changed-sources/force-app" --test-level ${{ inputs.TEST_LEVEL }} $tests --target-org ${{ inputs.ORG_ALIAS }}
+        if [ "${{ inputs.ORG_ALIAS }}" == "prod" ]; then
+          sf project deploy validate --source-dir "changed-sources/force-app" --target-org ${{ inputs.ORG_ALIAS }}
+        else
+          sf project deploy start --source-dir "changed-sources/force-app" --dry-run --test-level ${{ inputs.TEST_LEVEL }} --tests ${{ env.APEX_TESTS }}  --target-org ${{ inputs.ORG_ALIAS }}
