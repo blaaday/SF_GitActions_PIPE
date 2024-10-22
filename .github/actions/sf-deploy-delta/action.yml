@@ -10,4 +10,4 @@ runs:
     - name: "Deploy delta"
       shell: bash
       run: |
-        sf project deploy start --source-dir "changed-sources/force-app" --target-org ${{ inputs.ORG_ALIAS }} --ignore-conflicts
+        sf project deploy start --source-dir "changed-sources/force-app" --target-org ${{ inputs.ORG_ALIAS }}

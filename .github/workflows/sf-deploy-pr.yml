@@ -1,7 +1,12 @@
-name: Deploy release branch to QA
+name: Deployment to target org
 
 on:
   push:
+    branches:
+      - dev
+      - qa
+      - uat
+      - main
     paths:
       - "force-app/**"
 
@@ -49,13 +54,6 @@ jobs:
         with:
           to: "HEAD"
           from: "HEAD~1"
-
-      - name: update metadata files
-        uses: ./.github/actions/update-metadata
-        with:
-          path: "*.email"
-          original-value: "https://www.cadillaceurope.com/"
-          updated-value: "https://www-cadillaceurope-com.prd2.wpx.gm.com/"
 
       - name: Deployment
         if: ${{ steps.org-selection.outputs.org-alias != '' }}
