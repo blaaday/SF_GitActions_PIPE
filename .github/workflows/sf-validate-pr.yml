@@ -27,8 +27,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # - name: Install Dependencies
-      #   uses: ./.github/actions/install-dependencies
+      - name: Install Dependencies
+        uses: ./.github/actions/install-dependencies
 
       - name: Selecting Target Org
         id: org-selection
