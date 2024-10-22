@@ -42,6 +42,7 @@ runs:
         # Read the changed class names from the file ( changed_classes.txt )
         while IFS= read -r class; do
           if [ -n "$class" ]; then
+            echo $class
             # Search for test classes that reference the changed class
             tests=$(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" 2>/dev/null | grep ".cls" | xargs -r -n 1 basename 2>/dev/null | sed 's/.cls$//')
 
