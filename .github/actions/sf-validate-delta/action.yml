@@ -23,8 +23,8 @@ runs:
       shell: bash
       id: detect-classes
       run: |
-        # List all changed Apex classes in the "changed-sources/force-app/classes" folder
-        changed_classes=$(find changed-sources/force-app/classes/ -name "*.cls" -exec basename {} .cls \;)
+        # List all changed Apex classes in the "changed-sources/force-app/main/default/classes/" folder
+        changed_classes=$(find changed-sources/force-app/main/default/classes/ -name "*.cls" -exec basename {} .cls \;)
         
         echo "Changed Apex classes:"
         echo "$changed_classes"
