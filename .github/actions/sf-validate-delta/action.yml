@@ -39,16 +39,14 @@ runs:
         # Read the changed class names from the file ( changed_classes.txt )
         while IFS= read -r class; do
           if [ -n "$class" ]; then
-            echo $(grep -rl "@isTest" force-app/main/default/classes)
-            echo $(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" )
-            echo $(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" | grep ".cls" )
-            echo $(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" | grep ".cls" | xargs -n 1 basename )
-            echo $(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" | grep ".cls" | xargs -n 1 basename | sed 's/.cls$//')
-            tests=$(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" | grep ".cls" | xargs -n 1 basename | sed 's/.cls$//')
-            if [ -n "$tests" ]; then
-              test_classes="$test_classes $tests"
-            else
-              echo "No test classes found for changed class: $class"
+            match=$(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" )
+            if [ -n "$match" ]; then
+              tests=$(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" | grep ".cls" | xargs -n 1 basename | sed 's/.cls$//')
+              if [ -n "$tests" ]; then
+                test_classes="$test_classes $tests"
+              else
+                echo "No test classes found for changed class: $class"
+              fi
             fi
           fi
         done < changed_classes.txt
