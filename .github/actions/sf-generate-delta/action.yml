@@ -9,6 +9,8 @@ runs:
         mkdir changed-sources
         sf sgd:source:delta --from "${{ inputs.from }}" --to "${{ inputs.to }}" --output changed-sources/ --generate-delta --source force-app/
 
+        sf project deploy preview --manifest "changed-sources/package/package.xml" --target-org "${{ inputs.ORG_ALIAS }}"
+
     - name: "Delete existing bot comments"
       if: ${{ github.event_name == 'pull_request' }}
       uses: actions/github-script@v6
@@ -53,4 +55,7 @@ inputs:
     required: true
   from:
     description: "Target Branch"
+    required: true
+  ORG_ALIAS:
+    description: "Target Org"
     required: true
