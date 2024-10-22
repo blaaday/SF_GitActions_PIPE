@@ -4,6 +4,7 @@ public with sharing class AccountController {
         return [SELECT Id, Name FROM Account WITH USER_MODE LIMIT 10];
     }
 
+    
     @AuraEnabled(cacheable=true)
     public static Integer getTotalNumber() {
         return [SELECT COUNT() FROM Account WITH USER_MODE];
