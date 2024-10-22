@@ -41,7 +41,10 @@ jobs:
         id: org-selection
         uses: ./.github/actions/select_target_org
         with:
-          SF_QA_URL: ${{ secrets.SF_QA_URL }}
+          SF_DEV_URL: ${{ secrets.DEV_CRED }}
+          SF_QA_URL: ${{ secrets.QA_CRED }}
+          SF_UAT_URL: ${{ secrets.UAT_CRED }}
+          SF_PROD_URL: ${{ secrets.PROD_CRED }}
 
       - name: Authenticate to SF Org
         if: ${{ steps.org-selection.outputs.org-alias != '' }}
