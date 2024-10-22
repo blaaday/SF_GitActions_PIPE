@@ -39,16 +39,11 @@ runs:
         # Read the changed class names from the file ( changed_classes.txt )
         while IFS= read -r class; do
           if [ -n "$class" ]; then
-            echo "$class 1"
-            match=$(grep -rl "@isTest" force-app/main/default/classes | (xargs grep -l "ploof" || true ) )
-            echo "$class 2"
+            match=$(grep -rl "@isTest" force-app/main/default/classes | (xargs grep -l "$class" || true ) )
             if [ -n "$match" ]; then
-              echo "$class 3"
               tests=$(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" | grep ".cls" | xargs -n 1 basename | sed 's/.cls$//')
-              echo "$class 4"
               if [ -n "$tests" ]; then
                 test_classes="$test_classes $tests"
-                echo $test_classes
               else
                 echo "No test classes found for changed class: $class"
               fi
@@ -72,3 +67,4 @@ runs:
           sf project deploy validate --source-dir "changed-sources/force-app" --target-org ${{ inputs.ORG_ALIAS }}
         else
           sf project deploy start --source-dir "changed-sources/force-app" --dry-run --test-level ${{ inputs.TEST_LEVEL }} --tests ${{ env.APEX_TESTS }}  --target-org ${{ inputs.ORG_ALIAS }}
+        fi
