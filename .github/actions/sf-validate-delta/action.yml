@@ -24,7 +24,6 @@ runs:
       run: |
         # List all changed Apex classes in the "changed-sources/force-app/main/default/classes/" folder
         changed_classes=$(find changed-sources/force-app/main/default/classes/ -name "*.cls" -exec basename {} .cls \;)
-        ls -ll force-app/main/default/classes
         echo "Changed Apex classes:"
         echo "$changed_classes"
 
@@ -39,11 +38,19 @@ runs:
         
         # Read the changed class names from the file ( changed_classes.txt )
         while IFS= read -r class; do
-          # Search for test classes that reference the changed class
-          tests=$(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" | grep ".cls" | xargs -n 1 basename | sed 's/.cls$//')
-          
-          # Append the found test classes to the test_classes variable
-          test_classes="$test_classes $tests"
+          if [ -n "$class" ]; then
+            echo $(grep -rl "@isTest" force-app/main/default/classes)
+            echo $(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" )
+            echo $(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" | grep ".cls" )
+            echo $(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" | grep ".cls" | xargs -n 1 basename )
+            echo $(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" | grep ".cls" | xargs -n 1 basename | sed 's/.cls$//')
+            tests=$(grep -rl "@isTest" force-app/main/default/classes | xargs grep -l "$class" | grep ".cls" | xargs -n 1 basename | sed 's/.cls$//')
+            if [ -n "$tests" ]; then
+              test_classes="$test_classes $tests"
+            else
+              echo "No test classes found for changed class: $class"
+            fi
+          fi
         done < changed_classes.txt
       
         # Remove duplicate test class names and trim whitespace
