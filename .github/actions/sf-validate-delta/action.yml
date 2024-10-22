@@ -41,13 +41,17 @@ runs:
         
         # Read the changed class names from the file ( changed_classes.txt )
         while IFS= read -r class; do
-          # Search for test classes that reference the changed class
-          tests=$(grep -rl "@isTest" force-app | xargs grep -l "$class" | grep ".cls" | xargs -n 1 basename | sed 's/.cls$//')
-          
-          # Append the found test classes to the test_classes variable
-          test_classes="$test_classes $tests"
+          if [ -n "$class" ]; then
+            # Search for test classes that reference the changed class
+            tests=$(grep -rl "@isTest" force-app | xargs grep -l "$class" 2>/dev/null | grep ".cls" | xargs -r -n 1 basename 2>/dev/null | sed 's/.cls$//')
+
+            # Append the found test classes to the test_classes variable
+            if [ -n "$tests" ]; then
+              test_classes="$test_classes $tests"
+            fi
+          fi
         done < changed_classes.txt
-        
+      
         # Remove duplicate test class names and trim whitespace
         test_classes=$(echo "$test_classes" | tr ' ' '\n' | sort -u | tr '\n' ' ')
         
