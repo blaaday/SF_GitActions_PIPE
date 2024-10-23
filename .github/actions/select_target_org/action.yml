@@ -1,8 +1,17 @@
 name: "Selecting Target Org"
 description: "Select Target Org using target branch"
 inputs:
+  SF_DEV_URL:
+    description: "DEV authentication secret file"
+    required: true
   SF_QA_URL:
     description: "QA authentication secret file"
+    required: true
+  SF_UAT_URL:
+    description: "UAT authentication secret file"
+    required: true
+  SF_PROD_URL:
+    description: "PROD authentication secret file"
     required: true
 
 outputs:
@@ -16,7 +25,10 @@ runs:
     - name: "Select target org"
       shell: bash
       env:
+        SF_DEV_URL: ${{ inputs.SF_DEV_URL }}
         SF_QA_URL: ${{ inputs.SF_QA_URL }}
+        SF_UAT_URL: ${{ inputs.SF_UAT_URL }}
+        SF_PROD_URL: ${{ inputs.SF_PROD_URL }}
       id: org-selection
       run: |
         # Check if it's a pull request event
@@ -33,8 +45,28 @@ runs:
 
         # Extract Org
         case $target_branch in
-          d2c_release_2_*)
-            echo "org-alias=GM_QA" >> $GITHUB_OUTPUT
+          dev)
+            echo "Setting org-alias to dev"
+            echo "org-alias=dev" >> $GITHUB_OUTPUT
+            echo $SF_DEV_URL >> ./auth_file.json
+            ;;
+          qa)
+            echo "Setting org-alias to qa"
+            echo "org-alias=qa" >> $GITHUB_OUTPUT
             echo $SF_QA_URL >> ./auth_file.json
+            ;;
+          uat)
+            echo "Setting org-alias to uat"
+            echo "org-alias=uat" >> $GITHUB_OUTPUT
+            echo $SF_UAT_URL >> ./auth_file.json
+            ;;
+          main)
+            echo "Setting org-alias to prod"
+            echo "org-alias=prod" >> $GITHUB_OUTPUT
+            echo $SF_PROD_URL >> ./auth_file.json
+            ;;
+          *)
+            echo "Unsupported branch: $target_branch"
+            exit 1
             ;;
         esac
