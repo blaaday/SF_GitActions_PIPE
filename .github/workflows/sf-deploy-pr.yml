@@ -1,7 +1,12 @@
-name: Deploy release branch to QA
+name: Deployment to target org
 
 on:
   push:
+    branches:
+      - dev
+      - qa
+      - uat
+      - main
     paths:
       - "force-app/**"
 
@@ -36,7 +41,10 @@ jobs:
         id: org-selection
         uses: ./.github/actions/select_target_org
         with:
-          SF_QA_URL: ${{ secrets.SF_QA_URL }}
+          SF_DEV_URL: ${{ secrets.DEV_CRED }}
+          SF_QA_URL: ${{ secrets.QA_CRED }}
+          SF_UAT_URL: ${{ secrets.UAT_CRED }}
+          SF_PROD_URL: ${{ secrets.PROD_CRED }}
 
       - name: Authenticate to SF Org
         if: ${{ steps.org-selection.outputs.org-alias != '' }}
@@ -49,13 +57,6 @@ jobs:
         with:
           to: "HEAD"
           from: "HEAD~1"
-
-      - name: update metadata files
-        uses: ./.github/actions/update-metadata
-        with:
-          path: "*.email"
-          original-value: "https://www.cadillaceurope.com/"
-          updated-value: "https://www-cadillaceurope-com.prd2.wpx.gm.com/"
 
       - name: Deployment
         if: ${{ steps.org-selection.outputs.org-alias != '' }}
