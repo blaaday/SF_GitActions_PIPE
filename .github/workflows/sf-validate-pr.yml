@@ -53,26 +53,26 @@ jobs:
           from: ${{ github.event.pull_request.base.sha }}
           ORG_ALIAS: ${{ steps.org-selection.outputs.org-alias }}
 
-      # - name: Scan code with PMD
-      #   id: pmd-scan
-      #   uses: ./.github/actions/sf-code-scanner
+      - name: Scan code with PMD
+        id: pmd-scan
+        uses: ./.github/actions/sf-code-scanner
 
-      # - name: Upload SARIF file
-      #   uses: github/codeql-action/upload-sarif@v3
-      #   with:
-      #     sarif_file: "changed-sources/apexScanResults.sarif"
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: "changed-sources/apexScanResults.sarif"
 
-      # - name: Check PMD Results
-      #   shell: bash
-      #   run: |
-      #     if [ $SCAN_EXIT_CODE -ne 0 ]; then
-      #       echo "PMD Scan failed with exit code $SCAN_EXIT_CODE"
-      #       exit 1
-      #     else
-      #       echo "Scan completed successfully"
-      #     fi
-      #   env:
-      #     SCAN_EXIT_CODE: ${{ steps.pmd-scan.outputs.scan-exit-code }}
+      - name: Check PMD Results
+        shell: bash
+        run: |
+          if [ $SCAN_EXIT_CODE -ne 0 ]; then
+            echo "PMD Scan failed with exit code $SCAN_EXIT_CODE"
+            exit 1
+          else
+            echo "Scan completed successfully"
+          fi
+        env:
+          SCAN_EXIT_CODE: ${{ steps.pmd-scan.outputs.scan-exit-code }}
 
       - name: Check Only Deployment
         uses: ./.github/actions/sf-validate-delta

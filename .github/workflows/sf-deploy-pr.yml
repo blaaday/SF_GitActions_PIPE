@@ -11,7 +11,7 @@ on:
       - "force-app/**"
 
 jobs:
-  deployment-on-qa-org:
+  deployment-pipe:
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'dependabot[bot]' }}
 
